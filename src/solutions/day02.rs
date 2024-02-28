@@ -1,4 +1,11 @@
-fn exceeds(number: usize, color: &str) -> bool {
+#[derive(Default)]
+struct Turn {
+    red: usize,
+    green: usize,
+    blue: usize,
+}
+
+fn exceeds_limit(number: usize, color: &str) -> bool {
     match color {
         "red" => number > 12,
         "green" => number > 13,
@@ -12,21 +19,17 @@ pub fn resolve_part_one(file_content: String) -> usize {
         .lines()
         .enumerate()
         .fold(0, |acc, (index, line)| {
-            let mut valid = true;
-
-            let game_data = line.split_once(": ").unwrap().1;
-            let turns = game_data
+            let valid = line
+                .split_once(": ")
+                .unwrap()
+                .1
                 .split("; ")
                 .flat_map(|turn| turn.split(", "))
-                .map(|turn| turn.split_once(" ").unwrap());
+                .all(|turn| {
+                    let (parsed_value, color) = turn.split_once(" ").unwrap();
 
-            for turn in turns {
-                let parsed_value = turn.0.to_string().parse::<usize>().unwrap();
-
-                if exceeds(parsed_value, turn.1) {
-                    valid = false;
-                }
-            }
+                    !exceeds_limit(parsed_value.parse().unwrap(), color)
+                });
 
             if valid {
                 return acc + index + 1;
@@ -36,13 +39,6 @@ pub fn resolve_part_one(file_content: String) -> usize {
         });
 
     result
-}
-
-#[derive(Default)]
-struct Turn {
-    red: usize,
-    green: usize,
-    blue: usize,
 }
 
 pub fn resolve_part_two(file_content: String) -> usize {
